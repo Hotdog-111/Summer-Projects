@@ -1,4 +1,4 @@
-import { Form, Link, Outlet } from "react-router";
+import { Form, Link, NavLink, Outlet, useNavigation } from "react-router";
 import { getContacts } from "../data";
 import type { Route } from "./+types/sidebar";
 
@@ -7,10 +7,9 @@ export async function loader() {
   return { contacts };
 }
 
-export default function SidebarLayout({
-  loaderData,
-}: Route.ComponentProps) {
+export default function SidebarLayout({ loaderData }: Route.ComponentProps) {
   const { contacts } = loaderData;
+  const navigation = useNavigation();
 
   return (
     <>
@@ -27,11 +26,7 @@ export default function SidebarLayout({
               placeholder="Search"
               type="search"
             />
-            <div
-              aria-hidden
-              hidden={true}
-              id="search-spinner"
-            />
+            <div aria-hidden hidden={true} id="search-spinner" />
           </Form>
           <Form method="post">
             <button type="submit">New</button>
@@ -42,18 +37,23 @@ export default function SidebarLayout({
             <ul>
               {contacts.map((contact) => (
                 <li key={contact.id}>
-                  <Link to={`contacts/${contact.id}`}>
-                    {contact.first || contact.last ? (
-                      <>
-                        {contact.first} {contact.last}
-                      </>
-                    ) : (
-                      <i>No Name</i>
-                    )}
-                    {contact.favorite ? (
-                      <span>★</span>
-                    ) : null}
-                  </Link>
+                  <NavLink
+                    className={({ isActive, isPending }) =>
+                      isActive ? "active" : isPending ? "pending" : ""
+                    }
+                    to={`contacts/${contact.id}`}
+                  >
+                    <Link to={`contacts/${contact.id}`}>
+                      {contact.first || contact.last ? (
+                        <>
+                          {contact.first} {contact.last}
+                        </>
+                      ) : (
+                        <i>No Name</i>
+                      )}
+                      {contact.favorite ? <span>★</span> : null}
+                    </Link>
+                  </NavLink>
                 </li>
               ))}
             </ul>
@@ -64,7 +64,12 @@ export default function SidebarLayout({
           )}
         </nav>
       </div>
-      <div id="detail">
+      <div
+        className={
+          navigation.state === "loading" ? "loading" : ""
+        }
+        id="detail"
+      >
         <Outlet />
       </div>
     </>
